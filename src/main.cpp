@@ -147,6 +147,13 @@ button{padding:14px;border:none;border-radius:8px;
   cursor:pointer;transition:background .2s}
 button:hover{background:#c73552}
 button:disabled{background:#555;cursor:not-allowed}
+.pr{margin-top:14px;background:#10263f;border:1px solid #2a3f5c;border-radius:8px;padding:10px}
+.pr table{width:100%;border-collapse:collapse;font-size:.83em}
+.pr th,.pr td{padding:6px 4px;border-bottom:1px solid #1e3450;text-align:left}
+.pr th{color:#95d5b2;font-weight:600}
+.pr tr:last-child td{border-bottom:none}
+.pb{padding:6px 8px;font-size:.78em;border-radius:6px;background:#2f7f5f}
+.pb:hover{background:#26684e}
 .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
 .bt{background:#2f7f5f}
 .bt:hover{background:#26684e}
@@ -175,19 +182,19 @@ button:disabled{background:#555;cursor:not-allowed}
     <span>4.0</span>
   </div>
 
-  <label>Speech Rate: <span class="sv" id="rv">1.0</span></label>
+  <label>Speech Rate: <span class="sv" id="rv">1.00</span></label>
   <div class="sg">
     <span>0.5</span>
-    <input type="range" id="rate" min="0.5" max="2.0" step="0.1" value="1.0"
-      oninput="document.getElementById('rv').textContent=this.value">
-    <span>2.0</span>
+    <input type="range" id="rate" min="0.5" max="4.0" step="0.01" value="1.00"
+      oninput="document.getElementById('rv').textContent=parseFloat(this.value).toFixed(2)">
+    <span>4.0</span>
   </div>
 
-  <label>Pitch: <span class="sv" id="pv">0</span> semitones</label>
+  <label>Pitch: <span class="sv" id="pv">0.0</span> semitones</label>
   <div class="sg">
     <span>-10</span>
-    <input type="range" id="pitch" min="-10" max="10" step="1" value="0"
-      oninput="document.getElementById('pv').textContent=this.value">
+    <input type="range" id="pitch" min="-10" max="10" step="0.1" value="0.0"
+      oninput="document.getElementById('pv').textContent=parseFloat(this.value).toFixed(1)">
     <span>+10</span>
   </div>
 
@@ -220,6 +227,58 @@ button:disabled{background:#555;cursor:not-allowed}
       <option value="en-GB-Wavenet-D">WaveNet D (Male UK, HQ)</option>
     </optgroup>
   </select>
+
+  <div class="pr">
+    <label style="margin:0 0 8px">Casual Presets</label>
+    <table>
+      <thead>
+        <tr>
+          <th>Mood</th>
+          <th>Rate</th>
+          <th>Pitch</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Soft</td>
+          <td>1.13</td>
+          <td>+0.4</td>
+          <td><button class="pb" onclick="applyPreset('soft')">Apply</button></td>
+        </tr>
+        <tr>
+          <td>Chatty</td>
+          <td>1.25</td>
+          <td>+0.8</td>
+          <td><button class="pb" onclick="applyPreset('chatty')">Apply</button></td>
+        </tr>
+        <tr>
+          <td>Sleepy</td>
+          <td>1.02</td>
+          <td>0.0</td>
+          <td><button class="pb" onclick="applyPreset('sleepy')">Apply</button></td>
+        </tr>
+        <tr>
+          <td>Cheerful</td>
+          <td>1.32</td>
+          <td>+1.2</td>
+          <td><button class="pb" onclick="applyPreset('cheerful')">Apply</button></td>
+        </tr>
+        <tr>
+          <td>Neutral</td>
+          <td>1.19</td>
+          <td>+0.5</td>
+          <td><button class="pb" onclick="applyPreset('neutral')">Apply</button></td>
+        </tr>
+        <tr>
+          <td>Street</td>
+          <td>1.10</td>
+          <td>0.0</td>
+          <td><button class="pb" onclick="applyPreset('street')">Apply</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="ba">
     <button id="btn" onclick="speak()">Speak</button>
@@ -336,6 +395,14 @@ var savedGain=%GAIN%;
 var savedRate=%RATE%;
 var savedPitch=%PITCH%;
 var savedVoice="%VOICE%";
+var CASUAL_PRESETS={
+  soft:{rate:1.13,pitch:0.4,gain:0.82},
+  chatty:{rate:1.25,pitch:0.8,gain:0.88},
+  sleepy:{rate:1.02,pitch:0.0,gain:0.78},
+  cheerful:{rate:1.32,pitch:1.2,gain:0.90},
+  neutral:{rate:1.19,pitch:0.5,gain:0.85},
+  street:{rate:1.10,pitch:0.0,gain:0.80}
+};
 
 function applySavedSettings(){
   var vol=document.getElementById('vol');
@@ -347,8 +414,28 @@ function applySavedSettings(){
   pitch.value=savedPitch;
   voice.value=savedVoice;
   document.getElementById('vv').textContent=parseFloat(savedGain).toFixed(1);
-  document.getElementById('rv').textContent=parseFloat(savedRate).toFixed(1);
-  document.getElementById('pv').textContent=parseFloat(savedPitch).toFixed(0);
+  document.getElementById('rv').textContent=parseFloat(savedRate).toFixed(2);
+  document.getElementById('pv').textContent=parseFloat(savedPitch).toFixed(1);
+}
+
+function applyPreset(name){
+  var p=CASUAL_PRESETS[name];
+  if(!p){return;}
+
+  var vol=document.getElementById('vol');
+  var rate=document.getElementById('rate');
+  var pitch=document.getElementById('pitch');
+
+  vol.value=p.gain.toFixed(1);
+  rate.value=p.rate.toFixed(2);
+  pitch.value=p.pitch.toFixed(1);
+
+  document.getElementById('vv').textContent=parseFloat(vol.value).toFixed(1);
+  document.getElementById('rv').textContent=parseFloat(rate.value).toFixed(2);
+  document.getElementById('pv').textContent=parseFloat(pitch.value).toFixed(1);
+
+  setVolume(vol.value);
+  ss('Preset applied: '+name,'info');
 }
 
 async function testTone(){
@@ -808,8 +895,8 @@ void handleRoot() {
     page.replace("%BUILD_DATE%", __DATE__);
     page.replace("%BUILD_TIME%", __TIME__);
     page.replace("%GAIN%", String(audioGain, 1));
-    page.replace("%RATE%", String(pendingRate, 1));
-    page.replace("%PITCH%", String(pendingPitch, 0));
+    page.replace("%RATE%", String(pendingRate, 2));
+    page.replace("%PITCH%", String(pendingPitch, 1));
     page.replace("%VOICE%", pendingVoice);
     server.sendHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     server.sendHeader("Pragma", "no-cache");
